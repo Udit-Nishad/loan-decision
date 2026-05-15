@@ -16,7 +16,6 @@ data/processed/
 data/models/gbm_ensemble.joblib
 data/models/transformer.joblib
 data/models/scorecard.joblib
-data/models/feature_cols.joblib
 data/models/feature_importances.csv
 data/models/scorecard_table.csv
 
