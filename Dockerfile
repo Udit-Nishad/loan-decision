@@ -4,12 +4,14 @@ FROM python:3.10-slim
 # 2. Set the working directory inside the container
 WORKDIR /app
 
-# 3. Install dependencies first (this caches the heavy downloads)
+# 3. Install system dependencies including git-lfs to resolve large model files
+RUN apt-get update && apt-get install -y git git-lfs && git lfs install && rm -rf /var/lib/apt/lists/*
+
+# 4. Install Python dependencies first (cached layer)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 4. Copy ONLY the necessary directories and files
-# (The .dockerignore file will make sure we don't copy the 1GB of junk)
+# 5. Copy ONLY the necessary directories and files
 COPY frontend/ ./frontend/
 COPY src/ ./src/
 COPY data/models/default_model.joblib ./data/models/
@@ -18,9 +20,8 @@ COPY data/models/final_ensemble.joblib ./data/models/
 COPY interest_engine.py .
 COPY serve.py .
 
-# 5. Expose the port the app runs on
+# 6. Expose the port the app runs on
 EXPOSE 8000
 
-# 6. Run the application using Gunicorn for production
-# We set a 120-second timeout because large models can take a moment to load
-CMD gunicorn --bind 0.0.0.0:${PORT:-8000} --timeout 120 serve:app
+# 7. Run the application using Gunicorn for production
+CMD gunicorn --bind 0.0.0.0:${PORT:-8000} --timeout 120 --workers 1 serve:app
