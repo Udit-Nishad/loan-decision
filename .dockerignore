@@ -1,0 +1,43 @@
+# Ignore Git and Environment files
+.git
+.vscode
+__pycache__
+*.pyc
+
+# Ignore heavy datasets and databases
+*.csv
+*.db
+*.db-shm
+*.db-wal
+data/raw/
+data/processed/
+
+# Ignore unused/heavy models
+data/models/gbm_ensemble.joblib
+data/models/transformer.joblib
+data/models/scorecard.joblib
+data/models/feature_cols.joblib
+data/models/feature_importances.csv
+data/models/scorecard_table.csv
+
+# Ignore documents and analysis results
+*.docx
+*.zip
+README.md
+ablation_results/
+fairness_results/
+policy_bias_results/
+website idea images/
+tests/
+notebooks/
+data/reports/
+
+# Ignore analysis scripts
+ablation_study.py
+fairness_analysis.py
+policy_bias_analysis.py
+retrain.py
+get_fp_fn_counts.py
+test_minimal.py
+err.txt
+err.html

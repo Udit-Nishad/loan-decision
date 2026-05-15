@@ -1,0 +1,11 @@
+applicant_name,loan_amount,Credit_Score,AGE,NETMONTHLYINCOME,Time_With_Curr_Empr,num_deliq_6mts,num_deliq_12mts,enq_L3m,enq_L6m,enq_L12m,num_std,num_sub,num_dbt,num_lss,pct_of_active_TLs_ever,CC_Flag,HL_Flag,GENDER,MARITALSTATUS,EDUCATION
+Priya Sharma,500000,740,32,65000,48,0,0,1,2,3,8,0,0,0,0.75,1,0,F,Married,GRADUATE
+Rahul Kumar,300000,680,28,42000,24,0,0,2,3,4,5,0,0,0,0.60,0,0,M,Single,GRADUATE
+Sunita Patel,1200000,760,45,110000,96,0,0,0,1,2,12,0,0,0,0.82,1,1,F,Married,POST-GRADUATE
+Mohammed Ansari,200000,590,38,28000,18,2,3,1,2,5,3,1,0,0,0.40,0,0,M,Married,12TH
+Anita Desai,750000,720,41,78000,60,0,0,0,0,1,9,0,0,0,0.70,1,0,F,Married,PROFESSIONAL
+Vikram Singh,400000,510,35,32000,12,3,4,4,5,8,2,2,1,0,0.30,0,0,M,Single,GRADUATE
+Deepa Nair,250000,810,29,58000,36,0,0,0,1,1,7,0,0,0,0.88,1,0,F,Married,POST-GRADUATE
+Arjun Mehta,600000,650,52,85000,120,1,1,1,2,3,11,0,0,0,0.65,1,1,M,Married,GRADUATE
+Kavitha Rao,180000,720,26,35000,18,0,0,3,4,6,4,0,0,0,0.55,0,0,F,Single,UNDER GRADUATE
+Suresh Iyer,900000,780,48,125000,84,0,0,0,0,2,14,0,0,0,0.90,1,1,M,Married,POST-GRADUATE

@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Loan Decisioning</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --purple-grad: linear-gradient(135deg, #6A0DAD, #9B59B6);
+      --pink-grad: linear-gradient(135deg, #FF4F81, #FF7EB9);
+      --bg: #FFFFFF;
+      --surface: #F5F5F5;
+      --border: #E0E0E0;
+      --text: #333333;
+      --muted: #757575;
+      
+      --green: #27AE60;
+      --blue: #3498DB;
+      --yellow: #F39C12;
+      --red: #FF4F81; /* using the pink/red for reject */
+      
+      --mono: 'DM Mono', monospace;
+      --serif: 'DM Serif Display', serif;
+      --sans: 'Outfit', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+      font-family: var(--sans);
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    .scroll-container {
+      height: 100vh;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+    }
+
+    .section-snap {
+      height: 100vh;
+      scroll-snap-align: start;
+      position: relative;
+    }
+
+    /* ── LANDING PAGE (SECTION 1) ─────────────────────── */
+    .landing-page {
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+    }
+
+    .landing-page::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url('hero.jpeg') center/cover no-repeat;
+      opacity: 0.15;
+      pointer-events: none;
+    }
+
+    .landing-header {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 48px;
+      background: var(--purple-grad);
+      color: #FFFFFF;
+      box-shadow: 0 4px 20px rgba(106, 13, 173, 0.2);
+    }
+
+    .logo {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .logo-mark {
+      width: 18px;
+      height: 18px;
+      background: var(--pink-grad);
+      border-radius: 4px;
+      transform: rotate(45deg);
+    }
+
+    .logo-sub {
+      font-family: var(--serif);
+      font-size: 24px;
+      letter-spacing: 0.5px;
+      color: #FFF;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 0 24px;
+    }
+
+    .hero-content h1 {
+      font-family: var(--serif);
+      font-size: 68px;
+      line-height: 1.1;
+      margin-bottom: 24px;
+      color: var(--text);
+    }
+
+    .text-gradient {
+      background: var(--purple-grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-content p {
+      font-size: 20px;
+      color: var(--muted);
+      max-width: 600px;
+      margin-bottom: 48px;
+    }
+
+    .swipe-indicator {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      color: var(--blue);
+      font-weight: 600;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      animation: bounce 2s infinite;
+      cursor: pointer;
+    }
+
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(10px); }
+      60% { transform: translateY(5px); }
+    }
+
+    /* ── DASHBOARD (SECTION 2) ────────────────────────── */
+    .dashboard-shell {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      height: 100vh;
+      background: var(--surface);
+    }
+
+    .sidebar {
+      background: #FFFFFF;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 32px 0;
+      box-shadow: 2px 0 15px rgba(0,0,0,0.03);
+    }
+
+    .sidebar .logo { padding: 0 32px; margin-bottom: 40px; }
+    .sidebar .logo-sub { color: var(--text); }
+
+    .nav-tabs {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 0 20px;
+      flex: 1;
+    }
+
+    .nav-tab {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-family: var(--sans);
+      font-size: 15px;
+      font-weight: 500;
+      text-align: left;
+      padding: 14px 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .nav-tab:hover {
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    .nav-tab.active {
+      background: var(--purple-grad);
+      color: #FFFFFF;
+      box-shadow: 0 4px 15px rgba(106, 13, 173, 0.2);
+    }
+
+    .thinfile-tab {
+      margin-top: auto;
+      border: 2px dashed #9B59B6;
+      color: #9B59B6;
+    }
+
+    .status-bar {
+      padding: 24px 32px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+    .status-dot.online { background: var(--green); box-shadow: 0 0 8px rgba(39, 174, 96, 0.4); }
+    .status-dot.offline { background: var(--red); }
+
+    #status-text { color: var(--muted); }
+
+    /* ── MAIN CONTENT ─────────────────────────────────── */
+    .main-content {
+      position: relative;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--surface);
+    }
+
+    .main-content > .tab-content {
+      overflow-y: auto;
+    }
+
+    .tab-content {
+      display: none;
+      height: 100%;
+      animation: fadeIn 0.4s ease forwards;
+    }
+
+    .tab-content.active { display: flex; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── SPLIT PANEL ──────────────────────────────────── */
+    .split-layout {
+      display: grid;
+      grid-template-columns: 450px 1fr;
+      width: 100%;
+      height: 100%;
+    }
+
+    .panel {
+      overflow-y: auto;
+      padding: 32px 40px;
+    }
+
+    .form-panel {
+      background: #FFFFFF;
+      border-right: 1px solid var(--border);
+    }
+
+    /* ── FORMS ────────────────────────────────────────── */
+    .section-title {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #9B59B6;
+      margin-bottom: 24px;
+      display: block;
+      border-bottom: 2px solid var(--surface);
+      padding-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .field-group { margin-bottom: 32px; }
+    .field-group-title { font-family: var(--serif); font-size: 20px; color: var(--text); margin-bottom: 20px; }
+    .field { margin-bottom: 16px; }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .field input, .field select {
+      width: 100%;
+      background: #FFFFFF;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 15px;
+      padding: 12px 16px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .field input:focus, .field select:focus {
+      border-color: #9B59B6;
+      box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.1);
+    }
+
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    /* Slider */
+    .score-slider-wrap { position: relative; margin-top: 15px; }
+    .score-slider-wrap input[type=range] {
+      -webkit-appearance: none;
+      width: 100%; height: 8px;
+      background: linear-gradient(to right, var(--red), var(--yellow), var(--green));
+      border-radius: 4px; border: none; padding: 0;
+    }
+    .score-slider-wrap input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 24px; height: 24px;
+      background: #FFFFFF;
+      border: 3px solid #9B59B6;
+      border-radius: 50%; cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .score-display {
+      position: absolute; right: 0; top: -30px;
+      font-family: var(--mono); font-size: 18px; font-weight: bold; color: #6A0DAD;
+    }
+
+    .submit-btn {
+      width: 100%;
+      background: var(--pink-grad);
+      color: #FFFFFF;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 20px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 8px 20px rgba(255, 79, 129, 0.3);
+    }
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(255, 79, 129, 0.4); }
+
+    /* ── RESULTS ──────────────────────────────────────── */
+    .result-empty {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; color: var(--muted);
+    }
+    .result-content { display: none; opacity: 0; transition: opacity 0.4s; }
+    .result-content.visible { display: block; opacity: 1; }
+
+    .decision-banner {
+      border-radius: 16px; padding: 32px; margin-bottom: 24px;
+      background: #FFFFFF; box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+      border-top: 6px solid;
+    }
+    .decision-banner.APPROVE { border-color: var(--green); }
+    .decision-banner.CONDITIONAL { border-color: var(--yellow); }
+    .decision-banner.REJECT { border-color: var(--red); }
+    .decision-banner.REFER { border-color: var(--blue); }
+
+    .banner-decision { font-family: var(--serif); font-size: 36px; margin-top: 8px; color: var(--text); }
+    .banner-conf-val { font-family: var(--mono); font-size: 28px; font-weight: bold; color: #6A0DAD; }
+
+    /* ── OTHER TABS ───────────────────────────────────── */
+    .full-width-panel { padding: 48px; width: 100%; overflow-y: auto; background: #FFFFFF; }
+    
+    .batch-drop {
+      border: 2px dashed #9B59B6; border-radius: 16px; padding: 60px; text-align: center;
+      background: rgba(155, 89, 182, 0.05); cursor: pointer; transition: all 0.3s;
+    }
+    .batch-drop:hover { background: rgba(155, 89, 182, 0.1); }
+    .batch-table { width:100%; text-align:left; border-collapse:collapse; font-family: var(--mono); font-size: 14px; }
+    .batch-table th { padding: 12px; border-bottom: 2px solid var(--border); color: var(--muted); }
+    .batch-table td { padding: 12px; border-bottom: 1px solid var(--border); }
+
+    #toast {
+      position: fixed; bottom: 24px; right: 24px; background: #FFFFFF;
+      border-left: 4px solid var(--purple-grad); border-radius: 8px; padding: 16px 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1); font-family: var(--mono); font-size: 14px;
+      z-index: 2000; transform: translateY(100px); opacity: 0; transition: all 0.3s;
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+    #toast.success { border-color: var(--green); }
+    #toast.error { border-color: var(--red); }
+  </style>
+</head>
+<body>
+  <div class="scroll-container">
+    <!-- SECTION 1: LANDING PAGE -->
+    <div class="section-snap landing-page" id="landing-page">
+       <header class="landing-header">
+         <div class="logo">
+           <span class="logo-mark"></span>
+           <span class="logo-sub">AI Decisioning v2.0</span>
+         </div>
+       </header>
+       <div class="hero-content">
+          <h1>Intelligent Credit Decisions,<br><span class="text-gradient">Powered by AI.</span></h1>
+          <p>A state-of-the-art decisioning engine for banks and NBFCs ensuring fairness, accuracy, and full explainability.</p>
+          <div class="swipe-indicator" onclick="document.getElementById('dashboard-shell').scrollIntoView({behavior: 'smooth'})">
+            Swipe to Enter Dashboard
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+       </div>
+    </div>
+
+    <!-- SECTION 2: DASHBOARD -->
+    <div class="section-snap dashboard-shell" id="dashboard-shell">
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+         <div class="logo">
+           <span class="logo-mark"></span>
+           <span class="logo-sub" style="color: var(--text);">AI Decisioning</span>
+         </div>
+         
+         <div class="nav-tabs">
+           <button class="nav-tab active" onclick="switchTab('single')">Single Application</button>
+           <button class="nav-tab" onclick="switchTab('batch')">Batch Scoring</button>
+           <button class="nav-tab" onclick="switchTab('model')">Model Info</button>
+           <button class="nav-tab thinfile-tab" onclick="switchTab('thinfile')">First-Time Borrower</button>
+         </div>
+
+         <div class="status-bar">
+           <div class="status-dot" id="status-dot"></div>
+           <span id="status-text">connecting…</span>
+         </div>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="main-content">
+        <!-- TAB 1: SINGLE -->
+        <div class="tab-content active split-layout" id="tab-single">
+           <div class="panel form-panel">
+              <span class="section-title">Application Form</span>
+              
+              <div class="field-group">
+                <div class="field-group-title">Applicant</div>
+                <div class="field"><label>Full Name</label><input type="text" id="applicant_name"></div>
+                <div class="field-row">
+                  <div class="field"><label>Loan Amount (INR)</label><input type="number" id="loan_amount" value="500000"></div>
+                  <div class="field"><label>Age</label><input type="number" id="AGE" value="32"></div>
+                </div>
+                <div class="field"><label>Net Monthly Income</label><input type="number" id="NETMONTHLYINCOME" value="55000"></div>
+                <div class="field-row">
+                  <div class="field"><label>Gender</label><select id="GENDER"><option value="M">Male</option><option value="F">Female</option></select></div>
+                  <div class="field"><label>Loan Tenure</label><select id="loan_tenure_months"><option value="12">12 months</option><option value="24">24 months</option><option value="36">36 months</option><option value="48">48 months</option><option value="60">60 months</option></select></div>
+                </div>
+                <div class="field"><label>Education</label><select id="EDUCATION"><option>GRADUATE</option><option>POST-GRADUATE</option><option>PROFESSIONAL</option><option>UNDER GRADUATE</option><option>12TH</option><option>SSC</option></select></div>
+              </div>
+
+              <div class="field-group">
+                <div class="field-group-title">CIBIL Bureau</div>
+                <div class="field">
+                  <label>Credit Score</label>
+                  <div class="score-slider-wrap">
+                    <span class="score-display" id="score-display">720</span>
+                    <input type="range" id="Credit_Score" min="300" max="900" value="720" oninput="document.getElementById('score-display').textContent=this.value">
+                  </div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label>Missed Pymt (6m)</label><input type="number" id="num_deliq_6mts" value="0"></div>
+                  <div class="field"><label>Missed Pymt (12m)</label><input type="number" id="num_deliq_12mts" value="0"></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label>Enquiries (3m)</label><input type="number" id="enq_L3m" value="0"></div>
+                  <div class="field"><label>Enquiries (6m)</label><input type="number" id="enq_L6m" value="0"></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label>Enquiries (12m)</label><input type="number" id="enq_L12m" value="0"></div>
+                  <div class="field"><label>Empl Tenure (mo)</label><input type="number" id="Time_With_Curr_Empr" value="24"></div>
+                </div>
+              </div>
+
+              <div class="field-group">
+                <div class="field-group-title">Accounts</div>
+                <div class="field-row">
+                  <div class="field"><label>Standard</label><input type="number" id="num_std" value="5"></div>
+                  <div class="field"><label>Sub-Standard</label><input type="number" id="num_sub" value="0"></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label>Doubtful</label><input type="number" id="num_dbt" value="0"></div>
+                  <div class="field"><label>Loss</label><input type="number" id="num_lss" value="0"></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label>Active Tradelines %</label><input type="number" id="pct_of_active_TLs_ever" value="0.6" step="0.01"></div>
+                  <div class="field"><label>Max Delinquency</label><input type="number" id="max_delinquency_level" value="0"></div>
+                </div>
+                <div class="field-row">
+                  <div class="field"><label>Credit Card</label><select id="CC_Flag"><option value="0">No</option><option value="1">Yes</option></select></div>
+                  <div class="field"><label>Home Loan</label><select id="HL_Flag"><option value="0">No</option><option value="1">Yes</option></select></div>
+                </div>
+                <div class="field"><label>Loan Purpose</label><select id="loan_purpose"><option>Personal</option><option>Education</option><option>Business</option></select></div>
+              </div>
+
+              <button class="submit-btn" id="submit-btn" onclick="submitApplication()">Analyse Application</button>
+           </div>
+           <div class="panel result-panel" id="result-panel">
+              <div class="result-empty" id="result-empty">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <p style="margin-top: 16px; font-size: 16px;">Submit application to view AI decision</p>
+              </div>
+              <div class="result-content" id="result-content"></div>
+           </div>
+        </div>
+
+        <!-- TAB 2: BATCH -->
+        <div class="tab-content" id="tab-batch">
+           <div class="full-width-panel">
+              <span class="section-title">Batch Scoring</span>
+              <div class="batch-drop" id="batch-drop" onclick="document.getElementById('batch-file').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+                <p style="font-size: 32px; margin-bottom: 16px;">📂</p>
+                <p style="color: var(--text); font-size: 18px; font-weight: 500;">Drop CSV here or click to browse</p>
+              </div>
+              <input type="file" id="batch-file" style="display:none;" accept=".csv" onchange="handleBatchFile(event)">
+              <div id="batch-results" style="display:none; margin-top: 32px;">
+                <span id="batch-summary" style="color: #9B59B6; font-family: var(--mono); font-size: 14px; font-weight: bold;"></span>
+                <table class="batch-table" id="batch-table" style="margin-top: 16px;">
+                  <thead><tr><th>Applicant</th><th>Score</th><th>Income</th><th>Decision</th><th>Confidence</th><th>Rule</th></tr></thead>
+                  <tbody id="batch-tbody"></tbody>
+                </table>
+              </div>
+           </div>
+        </div>
+
+        <!-- TAB 3: MODEL -->
+        <div class="tab-content" id="tab-model">
+           <div class="full-width-panel">
+              <span class="section-title">Model Architecture & Info</span>
+              <div id="model-info-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px;"></div>
+           </div>
+        </div>
+
+        <!-- TAB 4: THIN FILE -->
+        <div class="tab-content" id="tab-thinfile">
+           <div class="full-width-panel" style="max-width: 800px; margin: 0 auto; background: transparent;">
+              <div style="background: #FFFFFF; padding: 48px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); border-top: 6px solid #9B59B6;">
+                 <h2 style="font-family: var(--serif); font-size: 28px; margin-bottom: 12px;">First-Time Borrower Assessment</h2>
+                 <p style="color: var(--muted); margin-bottom: 32px; font-size: 16px;">Evaluation using alternative banking activity instead of CIBIL score.</p>
+                 
+                 <div class="field-row">
+                   <div class="field"><label>Full Name</label><input type="text" id="tf_name"></div>
+                   <div class="field"><label>Age</label><input type="number" id="tf_age" value="25"></div>
+                 </div>
+                 <div class="field-row">
+                   <div class="field"><label>Gender</label><select id="tf_gender"><option value="M">Male</option><option value="F">Female</option></select></div>
+                   <div class="field"><label>Education</label><select id="tf_education"><option>Graduate</option><option>Post-Graduate</option><option>HSC</option><option>SSC</option></select></div>
+                 </div>
+                 <div class="field-row">
+                   <div class="field"><label>Residence Type</label><select id="tf_residence"><option>Urban</option><option>Semi-Urban</option><option>Rural</option></select></div>
+                   <div class="field"><label>Income Source</label><select id="tf_income_source"><option>Salaried</option><option>Self-Employed</option><option>Gig</option><option>Daily-Wage</option></select></div>
+                 </div>
+                 <div class="field-row">
+                   <div class="field"><label>Monthly Income (INR)</label><input type="number" id="tf_income" value="30000"></div>
+                   <div class="field"><label>Salary Credit Months</label><input type="number" id="tf_salary_months" value="6"></div>
+                 </div>
+                 <div class="field-row">
+                   <div class="field"><label>Employment Months</label><input type="number" id="tf_employment_months" value="12"></div>
+                   <div class="field"><label>Avg Monthly Balance (INR)</label><input type="number" id="tf_balance" value="10000"></div>
+                 </div>
+                 <div class="field-row">
+                   <div class="field"><label>Utility Payment Score (0-1)</label><input type="number" id="tf_utility" value="0.8" step="0.1" min="0" max="1"></div>
+                   <div class="field"><label>Loan Amount (INR)</label><input type="number" id="tf_loan_amount" value="100000"></div>
+                 </div>
+                 <div class="field-row">
+                   <div class="field"><label>Loan Purpose</label><select id="tf_purpose"><option>Personal</option><option>Education</option><option>Medical</option><option>Business</option><option>Home Improvement</option><option>Vehicle</option></select></div>
+                   <div class="field"><label>Loan Tenure</label><select id="tf_tenure"><option value="6">6 months</option><option value="12">12 months</option><option value="24" selected>24 months</option><option value="36">36 months</option><option value="48">48 months</option><option value="60">60 months</option></select></div>
+                 </div>
+                 <div class="field-row">
+                   <div class="field"><label>Existing EMI (INR)</label><input type="number" id="tf_existing_emi" value="0"></div>
+                   <div class="field"><label>Residence Stability (Years)</label><input type="number" id="tf_residence_stability" value="2" step="0.5"></div>
+                 </div>
+
+
+                 <button class="submit-btn" id="tf_submit_btn" onclick="submitThinFile()" style="margin-top: 16px;">Analyse Application</button>
+                 <div id="tf_result" style="margin-top: 32px;"></div>
+              </div>
+           </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    const API = window.location.protocol === 'file:' ? 'http://localhost:8000' : '';
+    let _batchData = [];
+
+    function switchTab(name) {
+      document.querySelectorAll('.nav-tab').forEach((t, i) => {
+        t.classList.toggle('active', ['single', 'batch', 'model', 'thinfile'][i] === name);
+      });
+      document.getElementById('tab-single').style.display = name === 'single' ? 'grid' : 'none';
+      document.getElementById('tab-batch').style.display = name === 'batch' ? 'flex' : 'none';
+      document.getElementById('tab-model').style.display = name === 'model' ? 'block' : 'none';
+      document.getElementById('tab-thinfile').style.display = name === 'thinfile' ? 'block' : 'none';
+
+      if (name === 'model') loadModelInfo();
+    }
+
+    async function checkHealth() {
+      try {
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), 3000);
+        const r = await fetch(`${API}/api/v1/health`, { signal: controller.signal });
+        clearTimeout(id);
+        const d = await r.json();
+        const dot = document.getElementById('status-dot');
+        const text = document.getElementById('status-text');
+        if (d.status === 'ok') {
+          dot.className = 'status-dot online';
+          text.textContent = `API online · v${d.model_version}`;
+        } else {
+          dot.className = 'status-dot offline';
+          text.textContent = 'degraded';
+        }
+      } catch {
+        const dot = document.getElementById('status-dot');
+        const text = document.getElementById('status-text');
+        dot.className = 'status-dot offline';
+        text.textContent = 'API offline';
+      }
+    }
+    checkHealth();
+    setInterval(checkHealth, 15000);
+
+    let toastTimer;
+    function toast(msg, type = '') {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = `show ${type}`;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { el.className = ''; }, 3500);
+    }
+
+    function getFormPayload() {
+      const g = id => document.getElementById(id)?.value;
+      const n = id => Number(document.getElementById(id)?.value) || 0;
+      return {
+        applicant_name: g('applicant_name'),
+        loan_amount: n('loan_amount'),
+        loan_purpose: g('loan_purpose'),
+        Credit_Score: n('Credit_Score'),
+        AGE: n('AGE'),
+        NETMONTHLYINCOME: n('NETMONTHLYINCOME'),
+        Time_With_Curr_Empr: n('Time_With_Curr_Empr'),
+        num_deliq_6mts: n('num_deliq_6mts'),
+        num_deliq_12mts: n('num_deliq_12mts'),
+        enq_L3m: n('enq_L3m'),
+        enq_L6m: n('enq_L6m'),
+        enq_L12m: n('enq_L12m'),
+        num_std: n('num_std'),
+        num_sub: n('num_sub'),
+        num_dbt: n('num_dbt'),
+        num_lss: n('num_lss'),
+        pct_of_active_TLs_ever: Number(g('pct_of_active_TLs_ever')) || 0.5,
+        max_delinquency_level: n('max_delinquency_level'),
+        CC_Flag: n('CC_Flag'), HL_Flag: n('HL_Flag'),
+        GENDER: g('GENDER'), loan_tenure_months: n('loan_tenure_months'), EDUCATION: g('EDUCATION'),
+      };
+    }
+
+    function validateForm(payload) {
+      if (!payload.applicant_name?.trim()) return 'Please enter applicant name';
+      if (!payload.loan_amount || payload.loan_amount < 10000) return 'Loan amount must be ≥ ₹10,000';
+      if (!payload.AGE || payload.AGE < 18) return 'Age must be ≥ 18';
+      if (!payload.NETMONTHLYINCOME && payload.NETMONTHLYINCOME !== 0) return 'Income required';
+      if (payload.Credit_Score < 300 || payload.Credit_Score > 900) return 'CIBIL Score must be 300–900';
+      return null;
+    }
+
+    async function submitApplication() {
+      const payload = getFormPayload();
+      const err = validateForm(payload);
+      if (err) { toast(err, 'error'); return; }
+
+      const btn = document.getElementById('submit-btn');
+      btn.textContent = 'Analysing...';
+      btn.style.opacity = '0.7';
+
+      try {
+        const res = await fetch(`${API}/api/v1/predict`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) {
+          const e = await res.json().catch(() => ({ detail: 'Unknown error' }));
+          throw new Error(e.detail || `HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        renderResult(data);
+        toast('Decision generated', 'success');
+
+      } catch (e) {
+        toast(`Error: ${e.message}`, 'error');
+      } finally {
+        btn.textContent = 'Analyse Application';
+        btn.style.opacity = '1';
+      }
+    }
+
+    function renderResult(d) {
+      document.getElementById('result-empty').style.display = 'none';
+      const el = document.getElementById('result-content');
+      const dcls = d.decision === 'APPROVE' ? 'APPROVE' : (d.decision === 'REJECT' ? 'REJECT' : (d.decision.includes('CONDITIONAL') ? 'CONDITIONAL' : 'REFER'));
+
+      el.innerHTML = `
+        <div class="decision-banner ${dcls}">
+          <div class="banner-class">${d.predicted_class}</div>
+          <div class="banner-decision">${d.decision}</div>
+          <div style="margin-top: 10px;">
+             <span class="banner-conf-val">${d.confidence_score.toFixed(0)}%</span> Confidence
+          </div>
+          <div style="margin-top: 10px; font-family: var(--mono); font-size: 14px;">Scorecard: ${d.scorecard_points} pts</div>
+          ${d.rule_triggered ? `<div style="margin-top:10px;font-family:var(--mono);color:inherit;">⚡ Rule Override: ${d.rule_reason || d.rule_name || 'Business rule triggered'}</div>` : ''}
+          <a href="${API}${d.report_url}" target="_blank" style="display:inline-block; margin-top:20px; text-decoration:none; color:inherit; font-weight:bold; padding: 10px 20px; background: rgba(0,0,0,0.1); border-radius: 8px;">Download PDF Report</a>
+        </div>
+      `;
+      el.classList.add('visible');
+    }
+
+    function handleDragOver(e) { e.preventDefault(); document.getElementById('batch-drop').style.opacity = '0.7'; }
+    function handleDragLeave(e) { document.getElementById('batch-drop').style.opacity = '1'; }
+    function handleDrop(e) {
+      e.preventDefault();
+      document.getElementById('batch-drop').style.opacity = '1';
+      const file = e.dataTransfer.files[0];
+      if (file) processBatchFile(file);
+    }
+    function handleBatchFile(e) {
+      const file = e.target.files[0];
+      if (file) processBatchFile(file);
+    }
+
+    function parseCSV(text) {
+      const lines = text.trim().split('\n');
+      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+      return lines.slice(1).map(line => {
+        const vals = line.split(',').map(v => v.trim().replace(/"/g, ''));
+        const obj = {};
+        headers.forEach((h, i) => { obj[h] = vals[i] || ''; });
+        ['Credit_Score', 'AGE', 'NETMONTHLYINCOME', 'loan_amount', 'num_deliq_6mts', 'num_deliq_12mts', 'enq_L3m', 'enq_L6m', 'enq_L12m', 'num_std', 'num_sub', 'num_dbt', 'num_lss', 'Time_With_Curr_Empr', 'CC_Flag', 'HL_Flag'].forEach(f => {
+          if (obj[f] !== undefined) obj[f] = Number(obj[f]) || 0;
+        });
+        if (!obj.loan_amount) obj.loan_amount = 500000;
+        return obj;
+      });
+    }
+
+    async function processBatchFile(file) {
+      if (!file.name.endsWith('.csv')) { toast('Please upload a CSV file', 'error'); return; }
+      const text = await file.text();
+      const apps = parseCSV(text).slice(0, 50);
+      if (!apps.length) { toast('No valid rows found in CSV', 'error'); return; }
+
+      toast(`Scoring ${apps.length} applications...`);
+      document.getElementById('batch-drop').innerHTML = `<p style="font-size:32px;margin-bottom:16px;">⏳</p><p>Scoring ${apps.length} applications...</p>`;
+
+      try {
+        const res = await fetch(`${API}/api/v1/predict/batch`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ applications: apps }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        renderBatchResults(data);
+        toast(`Scored ${data.processed} applications`, 'success');
+      } catch (e) {
+        toast(`Batch failed: ${e.message}`, 'error');
+      } finally {
+        document.getElementById('batch-drop').innerHTML = `<p style="font-size:32px;margin-bottom:16px;">📂</p><p>Drop another CSV or click to browse</p>`;
+      }
+    }
+
+    function renderBatchResults(data) {
+      document.getElementById('batch-summary').textContent = `${data.processed} scored · ${data.failed} failed · ${data.processing_ms.toFixed(0)}ms`;
+      const tbody = document.getElementById('batch-tbody');
+      tbody.innerHTML = data.results.map(r => r.status === 'error' ?
+        `<tr><td>${r.applicant_name || '?'}</td><td colspan="5" style="color:red">Error: ${r.error}</td></tr>` :
+        `<tr>
+          <td style="font-weight:500">${r.applicant_name}</td>
+          <td>${r.confidence_score?.toFixed(0)}%</td>
+          <td>₹${(r.NETMONTHLYINCOME || 0).toLocaleString('en-IN')}</td>
+          <td><span style="font-weight:bold">${r.decision}</span></td>
+          <td>${r.confidence_score?.toFixed(1)}%</td>
+          <td>${r.rule_triggered ? '⚡ ' + r.rule_name : '-'}</td>
+        </tr>`
+      ).join('');
+      document.getElementById('batch-results').style.display = 'block';
+    }
+
+    async function loadModelInfo() {
+      try {
+        const [info, health] = await Promise.all([
+          fetch(`${API}/api/v1/model-info`).then(r => r.json()),
+          fetch(`${API}/api/v1/health`).then(r => r.json()),
+        ]);
+        renderModelInfo(info, health);
+      } catch (e) {
+        document.getElementById('model-info-content').innerHTML = `<div style="color:red; padding: 20px;">Failed to load model info.</div>`;
+      }
+    }
+
+    function renderModelInfo(info, health) {
+      const p = info.performance || {};
+      document.getElementById('model-info-content').innerHTML = `
+        <div style="background: white; padding: 20px; border-radius: 8px;">
+          <h3 style="color: #9B59B6;">System Status</h3>
+          <p>Status: ${health.status}</p>
+          <p>Uptime: ${Math.floor((health.uptime_seconds || 0) / 60)} min</p>
+          <p>Models Loaded: ${health.model_loaded}</p>
+        </div>
+        <div style="background: white; padding: 20px; border-radius: 8px;">
+          <h3 style="color: #9B59B6;">Test-Set Performance</h3>
+          <p>Main Macro F1: ${(p.main_macro_f1 || 0).toFixed(4)}</p>
+          <p>Main P2 F1: ${(p.main_p2_f1 || 0).toFixed(4)}</p>
+          <p>Thin File AUC: ${(p.thin_file_auc || 0).toFixed(4)}</p>
+          <p>Default Model AUC: ${(p.default_model_auc || 0).toFixed(4)}</p>
+        </div>
+        <div style="background: white; padding: 20px; border-radius: 8px; grid-column: 1 / -1;">
+          <h3 style="color: #9B59B6;">Rule Engine</h3>
+          ${(info.rule_engine || []).map(r => `<p style="margin-top: 10px; font-family: var(--mono);">${r}</p>`).join('')}
+        </div>
+      `;
+    }
+
+    async function submitThinFile() {
+      const g = id => document.getElementById(id)?.value;
+      const n = id => Number(document.getElementById(id)?.value) || 0;
+      
+      const payload = {
+        applicant_name: g('tf_name') || 'First Time Borrower',
+        AGE: n('tf_age'),
+        GENDER: g('tf_gender'),
+
+        EDUCATION: g('tf_education'),
+        residence_type: g('tf_residence'),
+        income_source: g('tf_income_source'),
+        NETMONTHLYINCOME: n('tf_income'),
+        salary_credit_months: n('tf_salary_months'),
+        employment_months: n('tf_employment_months'),
+        avg_monthly_balance: n('tf_balance'),
+        utility_payment_score: n('tf_utility'),
+        income_verified: 1, // default to verified
+        loan_amount: n('tf_loan_amount'),
+        loan_purpose: g('tf_purpose'),
+        loan_tenure_months: n('tf_tenure'),
+        existing_emi: n('tf_existing_emi'),
+        residence_stability_yrs: n('tf_residence_stability'),
+        Credit_Score: 0 // forces thin-file routing in backend
+      };
+
+      const btn = document.getElementById('tf_submit_btn');
+      btn.textContent = 'Analysing...';
+      btn.style.opacity = '0.7';
+
+      try {
+        const res = await fetch(`${API}/api/v1/predict`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) {
+          const e = await res.json().catch(() => ({ detail: 'Unknown error' }));
+          throw new Error(e.detail || `HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        
+        const el = document.getElementById('tf_result');
+        const dcls = data.decision === 'APPROVE' ? 'APPROVE' : (data.decision === 'REJECT' ? 'REJECT' : (data.decision.includes('CONDITIONAL') ? 'CONDITIONAL' : 'REFER'));
+
+        el.innerHTML = `
+          <div class="decision-banner ${dcls}">
+            <div class="banner-class">${data.predicted_class}</div>
+            <div class="banner-decision">${data.decision}</div>
+            <div style="margin-top: 10px;">
+               <span class="banner-conf-val">${data.confidence_score.toFixed(0)}%</span> Confidence
+            </div>
+            ${data.rule_triggered ? `<div style="margin-top:10px;font-family:var(--mono);color:inherit;">⚡ Rule Override: ${data.rule_reason || data.rule_name || 'Business rule triggered'}</div>` : ''}
+            <a href="${API}${data.report_url}" target="_blank" style="display:inline-block; margin-top:20px; text-decoration:none; color:inherit; font-weight:bold; padding: 10px 20px; background: rgba(0,0,0,0.1); border-radius: 8px;">Download PDF Report</a>
+          </div>
+        `;
+        toast('Decision generated', 'success');
+
+      } catch (e) {
+        toast(`Error: ${e.message}`, 'error');
+      } finally {
+        btn.textContent = 'Analyse Application';
+        btn.style.opacity = '1';
+      }
+    }
+  </script>
+</body>
+</html>
