@@ -707,7 +707,7 @@
 
         if (!res.ok) {
           const e = await res.json().catch(() => ({ detail: 'Unknown error' }));
-          throw new Error(e.detail || `HTTP ${res.status}`);
+          throw new Error(e.error || e.detail || `HTTP ${res.status}`);
         }
 
         const data = await res.json();
@@ -887,7 +887,7 @@
 
         if (!res.ok) {
           const e = await res.json().catch(() => ({ detail: 'Unknown error' }));
-          throw new Error(e.detail || `HTTP ${res.status}`);
+          throw new Error(e.error || e.detail || `HTTP ${res.status}`);
         }
 
         const data = await res.json();
