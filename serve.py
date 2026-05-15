@@ -247,6 +247,8 @@ def predict():
         return jsonify(_shape_response(result))
     except ValueError as e:
         return jsonify({'error': str(e)}), 422
+    except TypeError as e:
+        return jsonify({'error': f"Missing or invalid fields: {str(e)}"}), 422
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
