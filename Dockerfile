@@ -17,6 +17,7 @@ COPY src/ ./src/
 COPY data/models/default_model.joblib ./data/models/
 COPY data/models/thin_file_model.joblib ./data/models/
 COPY data/models/final_ensemble.joblib ./data/models/
+COPY data/models/feature_cols.joblib ./data/models/
 COPY interest_engine.py .
 COPY serve.py .
 
